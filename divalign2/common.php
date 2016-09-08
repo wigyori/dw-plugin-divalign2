@@ -90,33 +90,88 @@ class syntax_plugin_divalign2_common extends DokuWiki_Syntax_Plugin {
             return true;
 
         } else if ($mode=='odt') {
-            $Align = ucfirst ($align);
-            //static $center_defined= false;
-            $st = <<<EOF
-<style:style style:name="Text.Divalign.$Align" style:display-name="Text.Divalign.$Align" style:family="paragraph" style:parent-style-name="Text_20_body">
-    <style:paragraph-properties fo:text-align="$align" style:justify-single-word="false" />
-    </style:style>
-
-EOF;
-
-            $renderer->autostyles["Text.Divalign.$Align"]= $st;
-            $center_defined= true;
-            switch ($state) {
-            case DOKU_LEXER_ENTER: {
-                $renderer->doc.= "<text:p text:style-name=\"Text.Divalign.$Align\">";
-                break;
+            if (!method_exists ($renderer, 'getODTPropertiesFromElement')) {
+                $this->render_odt_v1 ($renderer, $state, $align);
+            } else {
+                $this->render_odt_v2 ($renderer, $state, $align);
             }
-            case DOKU_LEXER_EXIT: {
-                $renderer->doc.= '</text:p>';
-                //reduce_odt();
-                break;
-            }
-            } // end switch
             return true;
         }
         return false;
     }
 
+    function render_odt_v1 (Doku_Renderer $renderer, $state, $align) {
+        $Align = ucfirst ($align);
+        //static $center_defined= false;
+        $st = <<<EOF
+<style:style style:name="Text.Divalign.$Align" style:display-name="Text.Divalign.$Align" style:family="paragraph" style:parent-style-name="Text_20_body">
+<style:paragraph-properties fo:text-align="$align" style:justify-single-word="false" />
+</style:style>
+
+EOF;
+
+        $renderer->autostyles["Text.Divalign.$Align"]= $st;
+        $center_defined= true;
+        switch ($state) {
+        case DOKU_LEXER_ENTER: {
+            $renderer->doc.= "<text:p text:style-name=\"Text.Divalign.$Align\">";
+            break;
+        }
+        case DOKU_LEXER_EXIT: {
+            $renderer->doc.= '</text:p>';
+            //reduce_odt();
+            break;
+        }
+        } // end switch
+    }
+
+    function render_odt_v2 (Doku_Renderer $renderer, $state, $align) {
+        static $first = true;
+        $alignments = array ('left', 'right', 'center', 'justify');
+        
+        if ($first) {
+            // First entrance of the function. Create our ODT styles.
+            // Group them under a parent called "Plugin DivAlign2"
+            $first = false;
+
+            // Create parent style to group the others beneath it
+            if (!$renderer->styleExists('Plugin_DivAlign2')) {
+                $parent_properties = array();
+                $parent_properties ['style-parent'] = 'Text_20_body';
+                $parent_properties ['style-class'] = 'Plugin_DivAlign2';
+                $parent_properties ['style-name'] = 'Plugin_DivAlign2';
+                $parent_properties ['style-display-name'] = 'Plugin DivAlign2';
+                $renderer->createParagraphStyle($parent_properties);
+            }
+
+            $properties = array ();
+            $properties ['justify-single-word'] = 'false';
+            $properties ['style-class'] = NULL;
+            $properties ['style-parent'] = 'Plugin_DivAlign2';
+            foreach ($alignments as $alignment) {
+                $Align = ucfirst ($alignment);
+                $name = 'Plugin DivAlign2 '.$Align;
+                $style_name = 'Plugin_DivAlign2_'.$Align;
+                if (!$renderer->styleExists($style_name)) {
+                    $properties ['style-name'] = $style_name;
+                    $properties ['style-display-name'] = $name;
+                    $properties ['text-align'] = $alignment;
+                    $renderer->createParagraphStyle($properties);
+                }
+            }
+        }
+
+        $Align = ucfirst ($align);
+        switch ($state) {
+            case DOKU_LEXER_ENTER:
+                $renderer->p_close();
+                $renderer->p_open('Plugin_DivAlign2_'.$Align);
+                break;
+            case DOKU_LEXER_EXIT:
+                $renderer->p_close();
+                break;
+        }
+    }
 
 } // end class
 
