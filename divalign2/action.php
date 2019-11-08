@@ -14,7 +14,7 @@ require_once(DOKU_PLUGIN. 'divalign2/common.php'); // for common functions
 class action_plugin_divalign2 extends DokuWiki_Action_Plugin {
 
 
-function register(&$controller) {
+function register($controller) {
     // detect DokuWiki version
     $v= file_get_contents(DOKU_INC. 'VERSION');
     if ($v===false) return;

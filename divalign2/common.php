@@ -53,7 +53,7 @@ class syntax_plugin_divalign2_common extends DokuWiki_Syntax_Plugin {
     function postConnect() {
     }
 
-    function handle($match, $state, $pos, &$handler){
+    function handle($match, $state, $pos, Doku_Handler $handler){
         // unpack and process
         $content= $match['content'];
         $align= $match['align'];
@@ -69,7 +69,7 @@ class syntax_plugin_divalign2_common extends DokuWiki_Syntax_Plugin {
         return array($align,$state,$pos);
     }
 
-    function render($mode, &$renderer, $data) {
+    function render($mode, Doku_Renderer $renderer, $data) {
         list ($align, $state, $pos) = $data;
         if (false) {
 
@@ -195,7 +195,7 @@ static public function getPType () {
     return 'stack';
     }
 
-static public function render ($mode, &$renderer, $data) {
+static public function render ($mode, Doku_Renderer $renderer, $data) {
     list($align,$state,$pos) = $data;
     if ($mode == 'xhtml') {
         $epos= strlen($renderer->doc)-10;

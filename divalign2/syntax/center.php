@@ -29,7 +29,7 @@ class syntax_plugin_divalign2_center extends syntax_plugin_divalign2_common {
             'plugin_divalign2_center');
     }
 
-    function handle($match, $state, $pos, &$handler){
+    function handle($match, $state, $pos, Doku_Handler $handler){
         $align= 'center';
         $content= $match;
         $match= array ('content' => $content, 'align'=>$align);

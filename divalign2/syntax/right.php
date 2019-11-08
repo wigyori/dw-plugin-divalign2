@@ -29,7 +29,7 @@ class syntax_plugin_divalign2_right extends syntax_plugin_divalign2_common {
             'plugin_divalign2_right');
     }
 
-    function handle($match, $state, $pos, &$handler){
+    function handle($match, $state, $pos, Doku_Handler $handler){
         $align= 'right';
         $content= $match;
         $match= array ('content' => $content, 'align'=>$align);
